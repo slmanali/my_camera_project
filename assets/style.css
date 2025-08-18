@@ -1,0 +1,84 @@
+
+#active {
+     padding: 0 10px 0 10px;
+     font-size: 40px;
+     color: #42ebf4;
+     background: rgb(2,0,36);
+     background: linear-gradient(0deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 35%, rgba(140,140,140,1) 100%);
+     border: 1px solid #42ebf4;
+}
+#active-bold {
+     padding: 0 10px 0 10px;
+     font-size: 40px;
+     color: #42ebf4;
+     background: rgb(2,0,36);
+     background: linear-gradient(0deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 35%, rgba(140,140,140,1) 100%);
+     border: 1px solid #42ebf4;
+     font-weight: bold;
+}
+#done {
+     padding: 0 10px 0 10px;
+     font-size: 40px;
+     color: #595959;
+     background: rgb(117,117,117);
+     background: linear-gradient(0deg, rgba(117,117,117,1) 0%, rgba(193,193,193,1) 100%);
+     border: 1px solid #42ebf4;
+     font-style: oblique;
+     text-decoration: line-through;
+}
+
+#fullscreensplash {
+     background: rgb(117,117,117);
+     background: linear-gradient(0deg, rgba(117,117,117,1) 0%, rgba(193,193,193,1) 100%);
+}
+
+#criticalbattery {
+     background: rgb(0,0,0);
+}
+
+.criticalmessages {
+     font-size: 20px;
+     color: #ffff00;
+}
+
+#background {
+     background: black;
+     background-color: black;
+}
+
+.messages {
+     font-size: 20px;
+     color: #42ebf4;
+}
+
+#transparent {
+     background-color: transparent;
+}
+
+#layer-status {
+     background: black;
+     background-color: black;
+}
+
+#click {
+     padding: 0 10px 0 10px;
+     font-size: 40px;
+     color: #42ebf4;
+     background: rgb(2,0,36);
+     background: linear-gradient(0deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 35%, rgba(140,140,140,1) 100%);
+     border: 1px solid #42ebf4;
+}
+
+#click-confirmed {
+     padding: 0 10px 0 10px;
+     font-size: 40px;
+     color: #000000;
+     background: rgba(66,235,244,1);
+     background: linear-gradient(to bottom, rgba(66,235,244,1) 0%, rgba(45,160,166,1) 100%);
+     border: 1px solid #000000;
+}
+
+#black {
+     background: rgba(0,0,0,1);
+     background-color: rgba(0,0,0,1);
+}
