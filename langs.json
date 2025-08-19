@@ -104,7 +104,8 @@
             "NOCAMERA": "THE CAMERA WON'T OPEN",
             "NOFRAME": "THE FRAME IS EMPTY",
             "NOTCONNECT": "NO WIFI IS CONNECTED",
-            "NOFILES": "NO TASKS, DOCUMENTS OR VIDEOS ARE ASSIGNED"
+            "NOFILES": "NO TASKS, DOCUMENTS OR VIDEOS ARE ASSIGNED",
+            "FILES": "NO WIFI, WORKING WITH OLD FILES"
         },               
         "pdf_message":{
             "name":"Report",
@@ -224,7 +225,8 @@
             "NOCAMERA": "КАМЕРА НЕ ОТКРЫВАЕТСЯ",
             "NOFRAME": "РАМКА ПУСТА",
             "NOTCONNECT": "WI-FI НЕ ПОДКЛЮЧЕН",
-            "NOFILES": "НИКАКИЕ ЗАДАЧИ, ДОКУМЕНТЫ ИЛИ ВИДЕОЗАПИСИ НЕ НАЗНАЧАЮТСЯ"
+            "NOFILES": "НИКАКИЕ ЗАДАЧИ, ДОКУМЕНТЫ ИЛИ ВИДЕОЗАПИСИ НЕ НАЗНАЧАЮТСЯ",
+            "FILES": "НЕТ WI-FI, РАБОТАЮ СО СТАРЫМИ ФАЙЛАМИ"
         },               
         "pdf_message":{            
             "name": "Отчёт_",
@@ -343,7 +345,8 @@
             "NOCAMERA": "الكاميرا لن تفتح",
             "NOFRAME": "الإطار فارغ",
             "NOTCONNECT": "لا يوجد اتصال واي فاي",
-            "NOFILES": "لم يتم تعيين أي مهام أو مستندات أو مقاطع فيديو"
+            "NOFILES": "لم يتم تعيين أي مهام أو مستندات أو مقاطع فيديو",
+            "FILES": "لا يوجد واي فاي، العمل مع الملفات القديمة"
         },               
         "pdf_message":{            
             "name":" تقرير ",

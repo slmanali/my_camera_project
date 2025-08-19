@@ -1458,7 +1458,7 @@ void CameraViewer::report_and_reset_clicks() {
                     }
                 }                
             }
-            else if (current_mode.find("Standalone") != std::string::npos) {
+            else if (current_mode.find("Standalone") != std::string::npos ) {
                 LOG_INFO("scenaraio  " + std::to_string(scenaraio));
                 if (scenaraio == 0) {
                     if (clicks == 1) {
@@ -1777,7 +1777,7 @@ void CameraViewer::report_and_reset_clicks() {
                         stackedWidget->setCurrentIndex(0);
                     }
                     else {
-                        complete_standalone_transition(true);
+                        complete_standalone_transition(false);
                     }
                 }
                 else if (clicks == 1) {
@@ -1832,7 +1832,7 @@ void CameraViewer::report_and_reset_clicks() {
                     }
                 }
             }
-            else if(current_mode.find("emptyStandalone") != std::string::npos) {                
+            else if(current_mode.find("emptyStand") != std::string::npos) {                
                 if (config.debug == 0) {
                     network.enable_wifi();
                     int Wconnected = 2;
@@ -1982,6 +1982,8 @@ void CameraViewer::complete_standalone_transition(bool _NOWIFI) {
             }
             else {
                 floatingMessage->showMessage(QString::fromStdString(lang.getText("error_message","NOFILES")), 2);
+                current_mode = "emptyStand"; 
+                session.update_helmet_status(current_mode);
                 A_control.setCaptureInputType("ADC");
                 A_control.setCaptureInputVolume(30);
                 A_control.setDigitalPlaybackVolume(95);
@@ -1989,13 +1991,43 @@ void CameraViewer::complete_standalone_transition(bool _NOWIFI) {
                 A_control.setDigitalCaptureVolume(115);
                 standalone_language_transition = false;
                 showdefaultstandalone(false);
+                LOG_INFO("current mode " + current_mode);
             }
             if (config.debug == 0)
                 network.disable_wifi();            
         }
-        else{
+        else{            
             current_mode = "Standalone";
-            session.update_helmet_status("Standalone");
+            session.update_helmet_status(current_mode);
+            floatingMessage->showMessage(QString::fromStdString(lang.getText("error_message","FILES")), 1);
+            A_control.setCaptureInputType("ADC");
+            A_control.setCaptureInputVolume(30);
+            A_control.setDigitalPlaybackVolume(95);
+            A_control.setLineOutputVolume(60);
+            A_control.setDigitalCaptureVolume(115);
+            standalone_language_transition = false;
+            LOG_INFO("current mode " + current_mode);
+            cameraThread->update_camera_pipeline(config._vl_loopback_small);
+            int _cap = cameraThread->init();
+            if (_cap == -1) { 
+                image = QImage(320, 240, QImage::Format_RGB888);
+                image.fill(Qt::black);  // Fill the image with black
+                QPainter painter(&image);
+                painter.setRenderHint(QPainter::Antialiasing);
+                painter.setPen(QColor(Qt::green));
+                QFont font("Arial", 10);
+                painter.setFont(font);
+                painter.drawText(5, 80, QString::fromStdString(lang.getText("error_message", "NOCAMERA")));
+                painter.end();
+                pixmap = QPixmap::fromImage(image);
+                videoPixmapItem2->setPixmap(pixmap);
+                videoScene2->setSceneRect(videoPixmapItem2->boundingRect());
+                videoView2->fitInView(videoScene2->sceneRect(), Qt::KeepAspectRatioByExpanding); 
+                videoView2->centerOn(videoPixmapItem2);
+                videoView2->viewport()->update();  
+                return;
+            }  
+            camera_rotate = false;
         }
         
     }catch (const std::exception& e) {
@@ -2477,7 +2509,7 @@ void CameraViewer::handle_command_recognize(std::string _command) {
                     }
                 }
             }
-            else if(current_mode.find("emptyStandalone") != std::string::npos) {   
+            else if(current_mode.find("emptyStand") != std::string::npos) {   
                 if (_command == lang.getText("standalonetab","close")) {             
                     if (config.debug == 0) {
                         network.enable_wifi();
@@ -3310,10 +3342,10 @@ void CameraViewer::showdefaultstandalone(bool _standalone) {
             }
         }
         else {            
+            current_mode = "emptyStand"; 
             listFiles->clear();
             listFiles->addItem(QString::fromStdString(lang.getText("error_message","NOFILES")));
-            listFiles->addItem(QString::fromStdString(lang.getText("standalonetab","close")));
-            current_mode = "emptyStandalone";            
+            listFiles->addItem(QString::fromStdString(lang.getText("standalonetab","close")));           
         }
     } catch (const std::exception& e) {
         LOG_ERROR("An error occurred in CameraViewer showdefaultstandalone: " + std::string(e.what()));
