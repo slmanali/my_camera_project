@@ -3309,7 +3309,8 @@ void CameraViewer::showdefaultstandalone(bool _standalone) {
                 pdf.addText("------------------------------------------------");
             }
         }
-        else {
+        else {            
+            listFiles->clear();
             listFiles->addItem(QString::fromStdString(lang.getText("error_message","NOFILES")));
             listFiles->addItem(QString::fromStdString(lang.getText("standalonetab","close")));
             current_mode = "emptyStandalone";            
