@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+<file alias="main.qml">/home/x_user/my_camera_project/camera_qml/main.qml</file>
+</qresource>
+</RCC>
