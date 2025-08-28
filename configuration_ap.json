@@ -28,6 +28,8 @@
   "testbench": 0,
   "INFO5" : "If the streaming_codex is 0 H264 will apply, 1 is H265 will apply",
   "streaming_codex" : 1,
+  "INFO6" : "If the remote_codex is 0 VP8 will apply, 1 is VP9 will apply",
+  "remote_codex" : 1,
   "script_gps":"/home/x_user/my_camera_project/gps_init.sh",
   "script_vpn":"/home/x_user/my_camera_project/vpn_start_script.sh",
   "pipelines": {
@@ -37,7 +39,8 @@
     "snapshot_file": "/home/x_user/my_camera_project/snapshot.png",
     "_vs_streaming": "appsrc ! videoconvert ! videoscale ! capsfilter caps=\"video/x-raw, width=$Width, height=$Height, framerate=$FPS/1\" ! vpuenc_h264 bitrate=$bitrate profile=9 ! h264parse ! rtph264pay aggregate-mode=zero-latency config-interval=30 mtu=1400 ! udpsink host=$VPN_ADDR port=$server_port",
     "_vs_streaming_265": "appsrc ! videoconvert ! videoscale ! capsfilter caps=\"video/x-raw, width=$Width, height=$Height, framerate=$FPS/1\" ! vpuenc_hevc bitrate=$bitrate ! h265parse ! rtph265pay aggregate-mode=zero-latency config-interval=30 mtu=1400 ! udpsink host=$VPN_ADDR port=$server_port",
-    "_vp_remote": "udpsrc port=$REMOTE_PORT caps=\"application/x-rtp, media=video,clock-rate=90000, encoding-name=VP9, payload=96\" ! rtpjitterbuffer drop-on-latency=True latency=100 ! rtpvp9depay ! queue max-size-buffers=3 ! vpudec ! videoconvert ! appsink sync=false max-buffers=1 drop=true",
+    "_vp_remote": "udpsrc port=$REMOTE_PORT caps=\"application/x-rtp, media=(string)video,clock-rate=(int)90000, encoding-name=(string)VP8-DRAFT-IETF-01, payload=(int)96\" ! rtpjitterbuffer drop-on-latency=True latency=100 ! rtpvp8depay ! queue ! vpudec ! videoconvert ! appsink sync=false max-buffers=1 drop=true",
+    "_vp_remote_VP9": "udpsrc port=$REMOTE_PORT caps=\"application/x-rtp, media=video,clock-rate=90000, encoding-name=VP9, payload=96\" ! rtpjitterbuffer drop-on-latency=True latency=100 ! rtpvp9depay ! queue max-size-buffers=3 ! vpudec ! videoconvert ! appsink sync=false max-buffers=1 drop=true",
     "audio_incoming": "udpsrc port=$AUDIO_PORT_CLIENT caps=\"application/x-rtp,clock-rate=8000\" ! rtpjitterbuffer drop-on-latency=True latency=100 ! rtpspeexdepay ! queue ! speexdec enh=false ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,rate=44100,channels=2 ! pulsesink device=alsa_output.platform-sound-wm8904.stereo-fallback",
     "audio_outcoming": "pulsesrc device=alsa_input.platform-sound-wm8904.stereo-fallback ! volume volume=2.0 name=\"volume\" ! opusenc complexity=0 frame-size=60 bandwidth=narrowband bitrate=32000 ! rtpopuspay ! udpsink host=$SERVER_ADDRESS port=$AUDIO_PORT_SERVER",
     "microphone_pipeline": "pulsesrc ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,rate=16000,channels=1 ! volume volume=5.0 ! appsink emit-signals=True name=myappsink",

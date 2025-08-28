@@ -85,6 +85,7 @@ class Configuration {
         int level;
         int testbench;
         int streaming_codex;
+        int remote_codex;
         std::string script_gps;
         std::string script_vpn;
         int width;
@@ -208,6 +209,7 @@ class Configuration {
                 level = config["level"].asInt();
                 testbench = config["testbench"].asInt();
                 streaming_codex = config["streaming_codex"].asInt();
+                remote_codex = config["remote_codex"].asInt();
                 script_gps = config["script_gps"].asString();
                 script_vpn = config["script_vpn"].asString();
                 width = config["width"].asInt();
@@ -259,7 +261,10 @@ class Configuration {
                 // std::cout << "_vs_streaming : " << _vs_streaming  << std::endl;
 
                 // sets remote pipeline
-                _vp_remote = config["pipelines"]["_vp_remote"].asString();
+                if (remote_codex == 0)
+                    _vp_remote = config["pipelines"]["_vp_remote"].asString();
+                else if (remote_codex == 1)
+                    _vp_remote = config["pipelines"]["_vp_remote_VP9"].asString();
                 _vp_remote = replacePlaceholder(_vp_remote, "$REMOTE_PORT", std::to_string(server_port));
 
                 // sets incoming audio pipeline
