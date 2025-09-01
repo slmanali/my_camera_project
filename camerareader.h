@@ -83,6 +83,7 @@ public:
             swidth = _width;
             sheight = _height;
             stream = true;
+            target_fps= _fps;
             startStreamingThread();
             return 0;
         } catch (const std::exception& e) {
@@ -92,17 +93,21 @@ public:
     }  
     
     void stopstream() {
-        if (stream) {            
-            stream = false;
-            stopStreamingThread();
-            // cv::Mat* frame;
-            // while (streamQueue.pop(frame)) {
-            //     if (frame && !frame->empty() && scap.isOpened()) {
-            //         scap.write(*frame);
-            //     }
-            //     delete frame; // Clean up each frame
-            // }
-            scap.release();
+        try{
+            if (stream) {            
+                stream = false;
+                stopStreamingThread();
+                // cv::Mat* frame;
+                // while (streamQueue.pop(frame)) {
+                //     if (frame && !frame->empty() && scap.isOpened()) {
+                //         scap.write(*frame);
+                //     }
+                //     delete frame; // Clean up each frame
+                // }
+                scap.release();
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR("An error occurred in Camerareader stopstream: " + std::string(e.what()));
         }
     }
 
@@ -223,6 +228,7 @@ private:
     boost::lockfree::queue<cv::Mat*, boost::lockfree::capacity<20>> streamQueue;
     std::thread streamThread;
     bool streamRunning = false;
+    int target_fps = 25;
 
     void CaptureFrame() {
         if (cap.isOpened()) {          
@@ -278,7 +284,7 @@ private:
     void startStreamingThread() {
         streamRunning = true;
         streamThread = std::thread([this]() {
-            const int target_fps = 25;
+            
             const auto frame_period = std::chrono::milliseconds(1000 / target_fps);
             auto next_frame_time = std::chrono::steady_clock::now();
 

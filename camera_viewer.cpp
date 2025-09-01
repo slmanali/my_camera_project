@@ -92,6 +92,7 @@ CameraViewer::CameraViewer(QWidget *parent)
     standbytimer(new QTimer(this)),
     clicktimer(new QTimer(this)),
     helptimer(new QTimer(this)),
+    stoptimer(new QTimer(this)),
     top_left(337, 57), 
     bottom_right(942, 662) {    
     try {
@@ -181,6 +182,10 @@ CameraViewer::CameraViewer(QWidget *parent)
         connect(timer, &QTimer::timeout, this, &CameraViewer::checkwifi);
         connect(clicktimer, &QTimer::timeout, this, &CameraViewer::report_and_reset_clicks);
         connect(helptimer, &QTimer::timeout, this, &CameraViewer::finish_helping);
+        connect(stoptimer, &QTimer::timeout, this, [this]() {
+            floatingMessage->timer_stop();
+        });          
+        stoptimer->start(10000);  
         // connect(standbytimer, &QTimer::timeout, this, &CameraViewer::Enter_Low_Power_Mode);
         timer->setInterval(600000);
         clicktimer->setInterval(2000);      
@@ -826,7 +831,8 @@ void CameraViewer::working_mode() {
 }
 
 void CameraViewer::FSM(nlohmann::json _data, std::string _event) {
-    try {    
+    try { 
+        floatingMessage->timer_stop();   
         LOG_INFO("current mode " + current_mode + "--" + _event);
         if (entering_standalone && current_mode.find("Standalone") != std::string::npos) {
             entering_standalone = false;
@@ -1903,11 +1909,11 @@ void CameraViewer::checkwifi() {
 
 void CameraViewer::handleIMUClassification(const QString& label) {
     std::string result = label.toStdString();
-    // LOG_INFO("IMU Classification: " + result);
+    LOG_INFO("IMU Classification: " + result);
 
     // Store label in the rolling vector
     operator_status_list.push_back(result);
-    if (operator_status_list.size() >= 3) {
+    if (operator_status_list.size() >= 4) {
         auto frequency = frequency_counter(operator_status_list);
 
         if (frequency["Fall"] >= 2) {    
@@ -1916,7 +1922,7 @@ void CameraViewer::handleIMUClassification(const QString& label) {
         else if (frequency["Relax"] >= 2) {
             session.set_operator_status("Fall");
         }
-        else if (frequency["Work"] > 2) {
+        else if (frequency["Work"] >= 2) {
             session.set_operator_status("Work");
         }
         operator_status_list.clear();
@@ -3151,10 +3157,6 @@ void CameraViewer::process_event(nlohmann::json _data) {
                 }
                 values[index] = std::stoi(setting); 
                 bool areEqual = true;
-                if (values[2] == 1280)
-                    values[2] = 1024;
-                if (values[3] == 720)
-                    values[3] = 768;
                 // Compare each element
                 for (int i = 0; i < 4; ++i) {                    
                     if (old_values[i] != values[i]) {
@@ -3162,13 +3164,15 @@ void CameraViewer::process_event(nlohmann::json _data) {
                         break; // Exit the loop early
                     }                    
                 }
+                if (values[2] == 1280)
+                    values[2] = 1024;
+                if (values[3] == 720)
+                    values[3] = 768;
                 memcpy(old_values, values, sizeof(old_values));
                 if (!areEqual) {
-                    std::cout << "!areEqual : " << std::endl;
+                    // std::cout << "NOT Equal : " << std::endl;
                     config.updatestreaming(values[0], values[1], values[2], values[3]);
-                    streamend();
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                    streamstart(_ipstream);                
+                    streamupdate(_ipstream, values[1]);                
                 }
             }
             // Update last processed event ID
@@ -3213,8 +3217,8 @@ void CameraViewer::streamstart(std::string _data) {
         std::string _loopback = config._vl_loopback;
         _loopback = config.replacePlaceholder(_loopback, "$FPS", "30");
         cameraThread->update_camera_pipeline(_loopback);  
-        cameraThread->stopCapturing();
-        cameraThread->releasecamera();  
+        // cameraThread->stopCapturing();
+        // cameraThread->releasecamera();  
         int _cap = cameraThread->init();
         if (_cap == -1) { 
             image = QImage(Swidth, Sheight, QImage::Format_RGB888);
@@ -3245,7 +3249,7 @@ void CameraViewer::streamstart(std::string _data) {
         std::string _stream = config._vs_streaming;          
         _stream = config.replacePlaceholder(_stream, "$VPN_ADDR", _data);
         _stream = config.replacePlaceholder(_stream, "$server_port", std::to_string(config.server_port));
-        // std::cout << "_stream : " << _stream  << std::endl;
+        std::cout << "_stream : " << _stream  << std::endl;
         int b_stream = cameraThread->startstream(_stream, config.speriod, config.swidth, config.sheight);
         if (b_stream == -1) {
             LOG_ERROR("Error: Could not open the streaming pipline.");
@@ -3257,16 +3261,38 @@ void CameraViewer::streamstart(std::string _data) {
     }
 }
 
+void CameraViewer::streamupdate(std::string _data, int _fps) {
+    try {
+        LOG_INFO("[GST] UPDATE STREAMING START"); 
+        cameraThread->stopstream();
+        std::string _stream = config._vs_streaming;          
+        _stream = config.replacePlaceholder(_stream, "$VPN_ADDR", _data);
+        _stream = config.replacePlaceholder(_stream, "$server_port", std::to_string(config.server_port));
+        std::cout << "_stream : " << _stream  << std::endl;
+        std::cout << "config.speriod : " << config.speriod  << std::endl;
+        std::cout << "_fps : " << _fps  << std::endl;
+        std::cout << "config.swidth : " << config.swidth  << std::endl;
+        std::cout << "config.sheight : " << config.sheight  << std::endl;
+        int b_stream = cameraThread->startstream(_stream, _fps, config.swidth, config.sheight);
+        if (b_stream == -1) {
+            LOG_ERROR("Error: Could not open the streaming pipline.");
+            return;
+        }
+        LOG_INFO("[GST] UPDATE STREAMING END");     
+    } catch (const std::exception& e) {
+        LOG_ERROR("An error occurred in CameraViewer streamupdate: " + std::string(e.what()));
+    }
+
+}
 void CameraViewer::streamend() {
     try {
         LOG_INFO("[GST] STOP STREAMING START");
+        cameraThread->stopstream();
         cameraThread->stopCapturing();
         cameraThread->releasecamera();    
         std::string _loopback = config._vl_loopback;
         _loopback = config.replacePlaceholder(_loopback, "$FPS", "15");
         cameraThread->update_camera_pipeline(_loopback);  
-        cameraThread->stopCapturing();
-        cameraThread->releasecamera();  
         int _cap = cameraThread->init();
         if (_cap == -1) { 
             image = QImage(Swidth, Sheight, QImage::Format_RGB888);
@@ -3294,7 +3320,7 @@ void CameraViewer::streamend() {
         camera_rotate = false;
         cameraThread->startCapturing(config.period);
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        cameraThread->stopstream();   
+           
         LOG_INFO("[GST] STOP STREAMING END");
     } catch (const std::exception& e) {
         LOG_ERROR("An error occurred in CameraViewer streamend: " + std::string(e.what()));

@@ -86,12 +86,16 @@ public:
                     move(x, y);
                 }
                 show();
+                emergency_start = std::chrono::high_resolution_clock::now();
             }
         }
     }
 
     void timer_stop() {
-        if (currenttype == 0){
+        auto emergency_end = std::chrono::high_resolution_clock::now();
+        double emergency_time = std::chrono::duration<double, std::milli>(
+            emergency_end - emergency_start).count();
+        if (currenttype == 0 && emergency_time>5000){
             timer->start(1);
             currenttype = 1;
         }
@@ -101,6 +105,7 @@ private:
     QLabel *label;
     QTimer *timer;
     int currenttype = 1;
+    std::chrono::time_point<std::chrono::high_resolution_clock> emergency_start;
 };
 
 #endif // FLOATINGMESSAGE_H

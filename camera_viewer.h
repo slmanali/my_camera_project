@@ -103,6 +103,7 @@ public:
     void remotestart();
     void remoteend();
     void streamstart(std::string _stream);
+    void streamupdate(std::string _stream, int _fps);
     void streamend();
     void showdefaultstandalone(bool _standalone = true);
     void showpdfmode();
@@ -195,6 +196,7 @@ private:
     QTimer *standbytimer;
     QTimer *clicktimer;
     QTimer *helptimer;
+    QTimer *stoptimer;
     cv::Mat resized_image;
     cv::Mat cropped_image;
     cv::Mat cropped_image_scaled;
@@ -214,7 +216,7 @@ private:
     cv::Point bottom_right;
     int Swidth, Sheight;
     std::mutex battery_mutex;
-    int old_values[4] = {5000,25,1024,768};
+    int old_values[4] = {5000,25,1280,720};
     QSlider *headphoneSlider;
     QSlider *captureSlider;
     QLabel *captureInputLabel;
