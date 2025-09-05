@@ -1934,10 +1934,10 @@ void CameraViewer::handleIMUClassification(const QString& label) {
     if (operator_status_list.size() >= 4) {
         auto frequency = frequency_counter(operator_status_list);
 
-        if (frequency["Fall"] >= 2) {    
+        if (frequency["Fall"] >= 3) {    
             session.set_operator_status("Fall");                      
         }
-        else if (frequency["Relax"] >= 2) {
+        else if (frequency["Relax"] >= 3) {
             session.set_operator_status("Relax");
         }
         else if (frequency["Work"] >= 2) {

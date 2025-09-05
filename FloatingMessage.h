@@ -46,8 +46,8 @@ public:
     }
 
     void showMessage(const QString& message, int type =0) {
-        std::cout << "currenttype " << currenttype << std::endl;
-        std::cout << "message " << message.toStdString() << std::endl;
+        // std::cout << "currenttype " << currenttype << std::endl;
+        // std::cout << "message " << message.toStdString() << std::endl;
         if (currenttype == 1){
             if (type < 3) {
                 label->setText(message);
