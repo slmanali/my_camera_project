@@ -831,8 +831,7 @@ void CameraViewer::working_mode() {
 }
 
 void CameraViewer::FSM(nlohmann::json _data, std::string _event) {
-    try { 
-        floatingMessage->timer_stop();   
+    try {    
         LOG_INFO("current mode " + current_mode + "--" + _event);
         if (entering_standalone && current_mode.find("Standalone") != std::string::npos) {
             entering_standalone = false;
@@ -1267,8 +1266,9 @@ void CameraViewer::report_and_reset_clicks() {
                     }
                     else {
                         session.stop_notify();
-                        start_qrcode();
                         current_mode = "qrcode";
+                        session.update_helmet_status(current_mode);
+                        start_qrcode();
                     }
                 }
                 else if (clicks == 5) {
@@ -1647,6 +1647,12 @@ void CameraViewer::report_and_reset_clicks() {
                     else if (clicks == 8)
                         scrollRight();
                     else if (clicks == 9) {
+                        if (cameraThread->takeSnapshot(config.snapshot_file)) {
+                            pdf.addImage("/home/x_user/my_camera_project/snapshot.png");
+                            pdf.addText("------------------------------------------------");
+                        }
+                    } 
+                    else if (clicks == 10) {
                         scenaraio = 1;
                         currentPage = 0;
                         zoomFactor = 1.5;
@@ -1663,8 +1669,14 @@ void CameraViewer::report_and_reset_clicks() {
                     }
                     else if (clicks == 2) {
                         prevTask();
-                    }
+                    }                    
                     else if (clicks == 3) {
+                        if (cameraThread->takeSnapshot(config.snapshot_file)) {
+                            pdf.addImage("/home/x_user/my_camera_project/snapshot.png");
+                            pdf.addText("------------------------------------------------");
+                        }
+                    }
+                    else if (clicks == 4) {
                         scenaraio = 2;
                         currentTaskIndex = 0;
                         scene->clear();
@@ -1701,6 +1713,12 @@ void CameraViewer::report_and_reset_clicks() {
                         scrollLeft();
                     }
                     else if (clicks == 9) {
+                        if (cameraThread->takeSnapshot(config.snapshot_file)) {
+                            pdf.addImage("/home/x_user/my_camera_project/snapshot.png");
+                            pdf.addText("------------------------------------------------");
+                        }
+                    }
+                    else if (clicks == 10) {
                         scenaraio = 2;
                         currentPage = 0;
                         zoomFactor = 1.5;                    
@@ -1920,7 +1938,7 @@ void CameraViewer::handleIMUClassification(const QString& label) {
             session.set_operator_status("Fall");                      
         }
         else if (frequency["Relax"] >= 2) {
-            session.set_operator_status("Fall");
+            session.set_operator_status("Relax");
         }
         else if (frequency["Work"] >= 2) {
             session.set_operator_status("Work");
@@ -1953,7 +1971,7 @@ void CameraViewer::complete_standalone_transition(bool _NOWIFI) {
                 QtConcurrent::run([this](){
                     session.Download_standalone_FILES(); // Heavy blocking
                     QMetaObject::invokeMethod(this, [this](){
-                        floatingMessage->timer_stop();
+                        floatingMessage->timer_stop(true);
                         floatingMessage->showMessage(QString::fromStdString(lang.getText("standalonetab","download")), 1);
                         A_control.setCaptureInputType("ADC");
                         A_control.setCaptureInputVolume(30);
@@ -1987,7 +2005,7 @@ void CameraViewer::complete_standalone_transition(bool _NOWIFI) {
                 });
             }
             else {
-                floatingMessage->showMessage(QString::fromStdString(lang.getText("error_message","NOFILES")), 2);
+                floatingMessage->timer_stop(true);                
                 current_mode = "emptyStand"; 
                 session.update_helmet_status(current_mode);
                 A_control.setCaptureInputType("ADC");
@@ -2064,7 +2082,6 @@ std::string CameraViewer::getCurrentDateTime() {
     std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
     return ss.str();
-
 }
 
 void CameraViewer::handle_command_recognize(std::string _command) {
@@ -3284,6 +3301,7 @@ void CameraViewer::streamupdate(std::string _data, int _fps) {
     }
 
 }
+
 void CameraViewer::streamend() {
     try {
         LOG_INFO("[GST] STOP STREAMING START");
@@ -3370,8 +3388,9 @@ void CameraViewer::showdefaultstandalone(bool _standalone) {
         else {            
             current_mode = "emptyStand"; 
             listFiles->clear();
-            listFiles->addItem(QString::fromStdString(lang.getText("error_message","NOFILES")));
-            listFiles->addItem(QString::fromStdString(lang.getText("standalonetab","close")));           
+            // listFiles->addItem(QString::fromStdString(lang.getText("error_message","NOFILES")));
+            listFiles->addItem(QString::fromStdString(lang.getText("standalonetab","close")));     
+            floatingMessage->showMessage(QString::fromStdString(lang.getText("error_message","NOFILES")), 2);      
         }
     } catch (const std::exception& e) {
         LOG_ERROR("An error occurred in CameraViewer showdefaultstandalone: " + std::string(e.what()));
@@ -3389,7 +3408,8 @@ void CameraViewer::showpdfmode() {
     listFiles->addItem("6- " + QString::fromStdString(lang.getText("standalonetab","down")));
     listFiles->addItem("7- " + QString::fromStdString(lang.getText("standalonetab","left")));
     listFiles->addItem("8- " + QString::fromStdString(lang.getText("standalonetab","right")));
-    listFiles->addItem("9- " + QString::fromStdString(lang.getText("standalonetab","quit")));
+    listFiles->addItem("9- " + QString::fromStdString(lang.getText("standalonetab","snapshot")));
+    listFiles->addItem("10- " + QString::fromStdString(lang.getText("standalonetab","quit")));
 }
 
 void CameraViewer::showtxtmode() {
@@ -3397,7 +3417,8 @@ void CameraViewer::showtxtmode() {
     taskListWidget->clear();
     listFiles->addItem("1- " + QString::fromStdString(lang.getText("standalonetab","next")));
     listFiles->addItem("2-" + QString::fromStdString(lang.getText("standalonetab","previous")));
-    listFiles->addItem("3- " + QString::fromStdString(lang.getText("standalonetab","quit")));
+    listFiles->addItem("3- " + QString::fromStdString(lang.getText("standalonetab","snapshot")));
+    listFiles->addItem("4- " + QString::fromStdString(lang.getText("standalonetab","quit")));
 }
 
 void CameraViewer::showvideomode() {
@@ -3494,6 +3515,7 @@ void CameraViewer::LoadPDF(const std::string &full_path) {
             }
             return;
         }        
+        currentPage = 0;
         cameraThread->startCapturing(config.period);
         pdf.addText(lang.getText("pdf_message","pdf") + filename + " - " + getCurrentDateTime());
         stackedWidget->setCurrentIndex(2);
@@ -3952,6 +3974,7 @@ void CameraViewer::drawTaskList() {
 void CameraViewer::start_qrcode() {
     try {
         LOG_INFO("start_qrcode");
+        LOG_INFO("current mode " + current_mode);
         legend_label1->setText(QString::fromStdString(lang.getText("defaulttab","exit")));
         legend_label2->setVisible(false);
         legend_label3->setVisible(false);

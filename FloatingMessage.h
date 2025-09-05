@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <iostream>
 
 class FloatingMessage : public QWidget {
     Q_OBJECT
@@ -45,6 +46,8 @@ public:
     }
 
     void showMessage(const QString& message, int type =0) {
+        std::cout << "currenttype " << currenttype << std::endl;
+        std::cout << "message " << message.toStdString() << std::endl;
         if (currenttype == 1){
             if (type < 3) {
                 label->setText(message);
@@ -91,11 +94,15 @@ public:
         }
     }
 
-    void timer_stop() {
+    void timer_stop(bool _force=false) {
         auto emergency_end = std::chrono::high_resolution_clock::now();
         double emergency_time = std::chrono::duration<double, std::milli>(
             emergency_end - emergency_start).count();
         if (currenttype == 0 && emergency_time>5000){
+            timer->start(1);
+            currenttype = 1;
+        }
+        if (_force) {
             timer->start(1);
             currenttype = 1;
         }

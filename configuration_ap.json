@@ -19,7 +19,7 @@
   "rotate":1,
   "font_size": 25,
   "todo": "/home/x_user/my_camera_project/todo/",
-  "default_language": "English",
+  "default_language": "عربي",
   "INFO2": "debug = 1 wifi still enabled and display frame number on image, while debug=0 will disable the wifi, while debug=2 wifi still enabled and frame number not displayed on image",
   "debug": 2,
   "INFO3": "The level is output sound of the voice recognition pipeline, 0 (no sound)",

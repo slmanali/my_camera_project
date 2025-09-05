@@ -192,6 +192,7 @@ public:
     bool takeSnapshot(const std::string& filename) {
         try{
             cv::Mat snapshot;
+            LOG_INFO("takeSnapshot");  
             if (frame.channels() == 2) {
                 cvtColor(frame, snapshot, cv::COLOR_YUV2BGR_YUY2);
                 cv::resize(snapshot, snapshot, cv::Size(640,480), 0, 0, cv::INTER_NEAREST);
